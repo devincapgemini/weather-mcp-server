@@ -2,14 +2,11 @@
 
 
 from server.weather import mcp
-import uvicorn
 import os
 
-def main():
-    """Starts the MCP server using uvicorn."""
-    port = int(os.getenv("PORT", "8000"))
-    uvicorn.run(mcp.app, host="0.0.0.0", port=port)
+# The FastMCP instance has a .app attribute which is the ASGI application
+app = mcp.app
 
-if __name__ == "__main__":
-    main()
+# The uvicorn server will be started from the Dockerfile's CMD instruction.
+# This allows Google Cloud Run to control the port.
 
