@@ -8,9 +8,15 @@ WORKDIR /app
 RUN pip install uv
 
 # Copy dependency definition files
-COPY pyproject.toml uv.lock ./
+COPY pyproject.toml ./
 
-# Install dependencies using the lock file for reproducibility
+# Create a virtual environment
+RUN uv venv
+
+# Activate the virtual environment for all subsequent commands by adding it to the PATH
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Install dependencies into the virtual environment
 RUN uv pip sync --no-cache pyproject.toml
 
 # Copy the rest of the application code into the container
@@ -19,5 +25,5 @@ COPY . .
 # Expose the port the app runs on
 EXPOSE 8000
 
-# Define the command to run the application
-CMD ["python", "main.py"]
+# Define the command to run the application with uvicorn
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
