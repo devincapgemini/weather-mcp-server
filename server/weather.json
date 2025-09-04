@@ -1,0 +1,17 @@
+{
+    "mcpServers": {
+      "weather": {
+        "command": "uv",
+        "args": [
+            "run",
+          "--with",
+          "mcp[cli]",
+          "mcp",
+          "run",
+          "/home/ankitmishralive/Desktop/Ankit Mishra/Programming/Generative A.I -LLMs/MCP/mcp-2/server/weather.py"
+        
+        ]
+      }
+    }
+  }
+  

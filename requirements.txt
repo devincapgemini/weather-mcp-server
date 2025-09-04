@@ -1,0 +1,9 @@
+
+
+mcp['cli']
+
+mcp-use # opensource way to connect any LLM to any MCP server and build custom agents
+
+langchain-groq
+
+asyncio
