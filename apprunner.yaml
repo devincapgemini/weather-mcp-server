@@ -3,9 +3,8 @@ runtime: python3.12
 build:
   commands:
     build:
-      - pip install uv
-      - uv pip sync --no-cache pyproject.toml
+      - pip install -r requirements.txt
 run:
-  command: python main.py
+  command: uvicorn main:app --host 0.0.0.0 --port 8000
   network:
     port: 8000
