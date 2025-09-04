@@ -11,7 +11,7 @@ RUN pip install uv
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies using the lock file for reproducibility
-RUN uv pip sync --no-cache pyproject.toml
+RUN uv sync --no-cache pyproject.toml
 
 # Copy the rest of the application code into the container
 COPY . .
