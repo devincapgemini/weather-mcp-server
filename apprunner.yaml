@@ -4,7 +4,7 @@ build:
   commands:
     build:
       - pip install uv
-      - uv pip sync --no-cache
+      - uv pip sync --no-cache pyproject.toml
 run:
   command: python main.py
   network:
