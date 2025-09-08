@@ -1,28 +1,53 @@
 
 
 
-import os
+from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import List, Dict, Any
+import httpx
 
-try:
-	from server.weather import mcp
-	# Base ASGI app from FastMCP
-	base_app = mcp.app
+app = FastAPI()
 
-	# Wrap with a lightweight ASGI router to serve /healthz
-	async def app(scope, receive, send):
-		if scope.get("type") == "http" and scope.get("path") == "/healthz":
-			headers = [(b"content-type", b"application/json"), (b"cache-control", b"no-store")]
-			await send({"type": "http.response.start", "status": 200, "headers": headers})
-			await send({"type": "http.response.body", "body": b'{"status":"ok"}'})
-			return
-		# Delegate to the MCP app for all other routes
-		await base_app(scope, receive, send)
-except Exception as e:
-	import sys
-	print(f"Startup error: {e}", file=sys.stderr)
-	# Fallback app that always returns 500
-	async def app(scope, receive, send):
-		headers = [(b"content-type", b"application/json")]
-		await send({"type": "http.response.start", "status": 500, "headers": headers})
-		await send({"type": "http.response.body", "body": b'{"error":"startup failure"}'})
+NWS_API_BASE = "https://api.weather.gov"
+USER_AGENT = "weather-mcp-server/1.0"
+
+class WeatherRequest(BaseModel):
+	states: List[str]  # List of US state codes, e.g. ["CA", "NY"]
+
+def format_alert(feature: dict) -> str:
+	event = feature.get("properties", {}).get("event", "")
+	severity = feature.get("properties", {}).get("severity", "")
+	headline = feature.get("properties", {}).get("headline", "")
+	description = feature.get("properties", {}).get("description", "")
+	instruction = feature.get("properties", {}).get("instruction", "")
+	return f"Event: {event}\nSeverity: {severity}\nHeadline: {headline}\nDescription: {description}\nInstruction: {instruction}"
+
+@app.get("/healthz")
+async def healthz():
+	return {"status": "ok"}
+
+@app.post("/weather")
+async def get_weather(req: WeatherRequest):
+	results = {}
+	headers = {
+		"User-Agent": USER_AGENT,
+		"Accept": "application/geo+json",
+	}
+	async with httpx.AsyncClient() as client:
+		for state in req.states:
+			url = f"{NWS_API_BASE}/alerts/active/area/{state}"
+			try:
+				resp = await client.get(url, headers=headers)
+				if resp.status_code == 200:
+					data = resp.json()
+					if not data.get("features"):
+						results[state] = "No active alerts for this state."
+					else:
+						alerts = [format_alert(f) for f in data["features"]]
+						results[state] = alerts
+				else:
+					results[state] = f"API error ({resp.status_code})"
+			except Exception as e:
+				results[state] = f"Error: {e}"
+	return results
 
