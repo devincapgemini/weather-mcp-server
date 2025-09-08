@@ -12,7 +12,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose a default port
-EXPOSE 8000
+EXPOSE 8080
+
+# Default to port 8080 if PORT is not provided by the platform
+ENV PORT=8080
 
 # Run the application, using the PORT variable provided by the cloud environment
-CMD uvicorn main:app --host 0.0.0.0 --port $PORT
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT}

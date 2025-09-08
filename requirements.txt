@@ -1,4 +1,3 @@
-asyncio
 fastembed
 langchain-groq
 mcp[cli]
